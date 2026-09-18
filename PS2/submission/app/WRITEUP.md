@@ -327,6 +327,66 @@ out to be merged. Verified by dumping the real CSV's unique codes and
 checking by hand before trusting the result — same discipline as the OSRM
 walking-route fix.
 
+## Regular-day value and persona preference (response to the NebulaX PS2 FAQ)
+
+The published FAQ for this problem statement clarified something the
+original build had gotten wrong: *"this problem statement is about a
+generic travel companion app... why would it want to download your app on
+a regular day?"* — and separately, *"explore how your app might cater to
+different persona and think through how you would know what persona type
+your user is."* Everything above this section was built around a single
+answer to "why open the app" — a disruption breaking Rachel's buffer. On
+an ordinary day (the overwhelming majority of days), the app had nothing
+to say beyond "Good morning, Rachel" and a passive crowding strip. That's
+a real gap, not a matter of framing.
+
+**The fix, scoped to what's buildable without inventing new route
+topology:** `src/lib/comfort.ts` promotes a signal that already
+existed only as a small decorative dot (`CrowdingStrip.tsx`'s "unusual"
+marker — live crowding reading `high` at a station whose real PV/Train
+baseline says it's normally quiet at this hour) into an actual
+suggestion, using data and functions already built for the disruption
+path rather than modelling a second route from scratch:
+`alternates.ts`'s per-station alternate-route minutes (built for the
+commit-point detector) doubles as "here's what the quieter option costs
+you in time" — `+N min, avoids the crowd` — computed and shown even when
+`decision.interrupt` is `false`. This is the direct answer to "least
+crowded route even if longer": a real number, not a vague nudge, reusing
+data the app already had rather than adding a second unverified data
+source under time pressure.
+
+**The persona mechanism:** rather than hardcoding a second named
+character (unconvincing without real user research to back it, and a
+larger build than the time available allowed), the app asks directly —
+a **Speed / Comfort** toggle, always visible in the header, persisted
+per-device. This is the literal answer to "how would you know what
+persona type your user is": ask once, act on it, rather than infer it
+from behaviour the app has no way to observe reliably anyway. Speed
+(the default, matching Rachel's own stated priority) shows the comfort
+suggestion as a small secondary note; Comfort promotes it to the
+headline, replacing "Good morning, Rachel" with the actionable
+suggestion on days when one is available. Same underlying data either
+way — the toggle changes what's foregrounded, not what's computed.
+
+**Demand/supply matching, honestly scoped:** the FAQ also asks how the
+app "helps incentivise matching of demand for public transport service
+with supply." This feature is a first, narrow answer — nudging
+comfort-preferring commuters off an unusually crowded segment onto an
+alternate route redistributes load rather than just reporting it — but
+it's a single-user nudge, not a system that reasons about aggregate
+demand. A real answer to that question (e.g. time-of-departure nudges
+informed by crowding forecasts, not just current-station-crowding) is a
+larger build than fit in the time available; flagged here rather than
+overclaimed.
+
+**Demoable on request:** since a genuinely "high crowding at a normally-
+quiet hour" moment isn't guaranteed to be happening live, `POST
+/api/mock/crowding` (paired with the "Simulate unusually busy station"
+demo button, same pattern as the disruption injectors) forces the tip
+directly rather than trying to fake both the live reading and hope the
+real PV/Train baseline cooperates — same reasoning PS2_README §2.6
+already gives for the disruption mocks.
+
 ## Assumptions
 
 - Station coordinates and walking-leg coordinates/times are hand-placed
