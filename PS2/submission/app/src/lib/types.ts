@@ -28,6 +28,8 @@ export interface Journey {
 export interface CommitStation {
   code: string;
   name: string;
+  // Present when the advice is "bus to this station, then rejoin the train".
+  rejoin?: { code: string; name: string };
 }
 
 export interface DelayRange {
@@ -58,6 +60,8 @@ export interface StatusResponse {
   crowdingBaseline: Record<string, BaselineLabel>;
   liveFeed: { lastPolledAt: string | null; lastPollError: string | null };
   crowdingFeed: { lastPolledAt: string | null; lastPollError: string | null };
+  alternatesFeed: { source: "onemap" | "fallback"; lastWarmedAt: string | null; lastWarmError: string | null };
+  rideTimesFeed: { source: "onemap" | "fallback"; lastWarmedAt: string | null; lastWarmError: string | null };
   pvTrainBaselineFeed: { lastWarmedAt: string | null; lastWarmError: string | null };
   stats: { totalChecks: number; interruptsFired: number };
 }

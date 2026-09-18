@@ -201,7 +201,7 @@ which switching to an alternate route still beats riding out the delay:
 for each station S, walking Tampines -> Raffles Place:
   remaining        = destination.cumMinutes - S.cumMinutes
   stay_time(S)      = predicted_delay + remaining
-  reroute_time(S)   = alternate_route_minutes(S)     # OneMap, cached at boot
+  reroute_time(S)   = alternate_route_minutes(S)     # OneMap bus-only route, cached
   if reroute_time(S) < stay_time(S): commit_point = S  # keep overwriting
 ```
 
@@ -214,13 +214,25 @@ plain arithmetic over cached numbers keeps it explainable to both Rachel and
 a judge (no black box between "here's a disruption" and "switch by Paya
 Lebar").
 
-**What's real vs. placeholder right now:** `alternates.ts`'s per-station
-alternate-route minutes are hand-picked, not fetched from OneMap — chosen so
-a major disruption's commit point lands at a plausible mid-route station for
-the demo. `rachel.ts`'s per-station `cumMinutes` are similarly hand-picked,
-not a measured EWL timetable. Both are cheap to replace once real data is
-wired in (`warmAlternatesCache()` and the station table respectively) without
-touching the commit-point logic itself.
+**What "alternate" means.** OneMap has no idea the EWL is down, so an
+unrestricted public-transport query from Bedok to Raffles Place would just
+route the rider back onto the disrupted line. `alternates.ts` therefore asks
+OneMap for *bus-only* itineraries (`mode=BUS`) — the realistic bridge when an
+MRT line is out, and guaranteed EWL-free — timed for a weekday morning at the
+hour Rachel would actually be at each station. The destination station has no
+alternate (you're already there), which also fixes a case where a long delay
+could make the destination itself the "commit point".
+
+**What's real vs. placeholder right now:** with `ONEMAP_EMAIL` /
+`ONEMAP_PASSWORD` set, alternate-route minutes are real OneMap routing
+results, cached for a week; without them (or if OneMap errors) they fall back
+to a hand-picked table and `/api/status` says so (`alternatesFeed.source`).
+As of writing, the OneMap client is tested offline against a stubbed API
+(`npm run check:alternates`) and guards against a wrong duration-unit
+assumption, but has not been run against the live service. `rachel.ts`'s
+per-station `cumMinutes` are still hand-picked, not a measured EWL
+timetable; station coordinates are now real (MP2014 rail-station GeoJSON
+centroids), though footprint centroids rather than exits.
 
 **No live position signal.** MRT trains have no public real-time position
 feed (unlike buses via `v3/BusArrival`'s `Load`/ETA data), and GPS doesn't
@@ -329,9 +341,9 @@ walking-route fix.
 
 ## Assumptions
 
-- Station coordinates and walking-leg coordinates/times are hand-placed
-  approximations (see README "Known gaps"), not yet sourced from the
-  provided GeoJSON or OneMap.
+- Station coordinates are footprint centroids from the provided MP2014
+  rail-station GeoJSON (not exits). Rachel's home and office are fictional
+  persona points, placed so real OSM foot routing returns ~4 and ~6 minutes.
 - "Normal journey time" (51 min = 7 walk + 38 MRT + 6 walk) is an estimate,
   not measured from `PV/*` historical data or a real timetable yet.
 - Single line (EWL), single direction, single persona — deliberate scope cut,

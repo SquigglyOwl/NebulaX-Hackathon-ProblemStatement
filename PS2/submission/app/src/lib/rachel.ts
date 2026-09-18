@@ -1,8 +1,16 @@
+import stationCoords from "./stationCoords.json";
+
+// Station lat/lng come from the provided AmendmenttoMP2014RailStation.geojson
+// (polygon centroids of the station footprints, not exits), generated into
+// stationCoords.json by `npm run build:stations` — see scripts/buildStationCoords.ts
+// for how each EW code is pinned to its polygon. Names and cumMinutes below are
+// still hand-set.
+function coords(code: keyof typeof stationCoords): { lat: number; lng: number } {
+  const { lat, lng } = stationCoords[code];
+  return { lat, lng };
+}
+
 // Rachel's fixed daily journey — hardcoded for this prototype (see PS2_README §2.2).
-// Station coordinates are approximate (hand-placed from public knowledge of EWL
-// station locations), good enough for a demo map. Before relying on this for real
-// routing, replace with AmendmenttoMP2014RailStation.geojson centroids or OneMap
-// geocoding — see WRITEUP.md.
 export const RACHEL_JOURNEY = {
   line: "EWL" as const,
   direction: "westbound" as const, // Tampines -> Raffles Place runs towards Tuas Link
@@ -13,26 +21,26 @@ export const RACHEL_JOURNEY = {
   // recomputes this from the actual routed walking minutes on every request.
   normalJourneyMinutes: 4 + 38 + 6,
   bufferMinutes: 5,
-  // Endpoint coordinates for the two walking legs, calibrated against the
-  // real foot-routing API (routing.openstreetmap.de) rather than guessed
-  // from a straight-line distance — an earlier guess based on straight-line
-  // distance produced real walking routes 2x longer than expected (real
-  // footpaths aren't beelines), which pushed slack negative. These points
-  // were checked to return ~4 min and ~6 min real routes before being used
-  // here. `minutes` below is only the last-resort fallback used before
+  // Endpoint coordinates for the two walking legs — fictional persona points,
+  // placed so the real foot-routing API (routing.openstreetmap.de) returns
+  // ~4 min (home -> Tampines) and ~6 min (Raffles Place -> office) against
+  // the geojson-derived station coordinates below (re-checked when those
+  // replaced the hand-placed ones: 4.1 and 5.9 min). Straight-line guesses
+  // don't work — real footpaths aren't beelines, and an earlier guess pushed
+  // slack negative. `minutes` is only the last-resort fallback used before
   // walkRouting.ts's real fetch completes (or if it fails) — see state.ts,
   // which overrides this with the actual routed time once available.
   walk: {
     home: {
       name: "Home (near Tampines)",
-      lat: 1.3565,
-      lng: 103.9445,
+      lat: 1.3553,
+      lng: 103.945,
       minutes: 4,
     },
     office: {
       name: "Office (near Raffles Place)",
-      lat: 1.281,
-      lng: 103.851,
+      lat: 1.282,
+      lng: 103.8512,
       minutes: 6,
     },
   },
@@ -41,19 +49,19 @@ export const RACHEL_JOURNEY = {
   // from a published EWL timetable or PV/ODTrain data yet. Swap for a measured
   // figure before relying on the commit-point detector for real advice.
   stations: [
-    { code: "EW2", name: "Tampines", lat: 1.3546, lng: 103.9437, cumMinutes: 0 },
-    { code: "EW3", name: "Simei", lat: 1.3430, lng: 103.953, cumMinutes: 4 },
-    { code: "EW4", name: "Tanah Merah", lat: 1.3272, lng: 103.9463, cumMinutes: 8 },
-    { code: "EW5", name: "Bedok", lat: 1.324, lng: 103.93, cumMinutes: 11 },
-    { code: "EW6", name: "Kembangan", lat: 1.3208, lng: 103.9127, cumMinutes: 14 },
-    { code: "EW7", name: "Eunos", lat: 1.3197, lng: 103.903, cumMinutes: 16 },
-    { code: "EW8", name: "Paya Lebar", lat: 1.3177, lng: 103.8925, cumMinutes: 19 },
-    { code: "EW9", name: "Aljunied", lat: 1.3164, lng: 103.8827, cumMinutes: 21 },
-    { code: "EW10", name: "Kallang", lat: 1.3117, lng: 103.8713, cumMinutes: 24 },
-    { code: "EW11", name: "Lavender", lat: 1.3072, lng: 103.863, cumMinutes: 27 },
-    { code: "EW12", name: "Bugis", lat: 1.3007, lng: 103.856, cumMinutes: 30 },
-    { code: "EW13", name: "City Hall", lat: 1.2931, lng: 103.852, cumMinutes: 34 },
-    { code: "EW14", name: "Raffles Place", lat: 1.2836, lng: 103.8514, cumMinutes: 38 },
+    { code: "EW2", name: "Tampines", ...coords("EW2"), cumMinutes: 0 },
+    { code: "EW3", name: "Simei", ...coords("EW3"), cumMinutes: 4 },
+    { code: "EW4", name: "Tanah Merah", ...coords("EW4"), cumMinutes: 8 },
+    { code: "EW5", name: "Bedok", ...coords("EW5"), cumMinutes: 11 },
+    { code: "EW6", name: "Kembangan", ...coords("EW6"), cumMinutes: 14 },
+    { code: "EW7", name: "Eunos", ...coords("EW7"), cumMinutes: 16 },
+    { code: "EW8", name: "Paya Lebar", ...coords("EW8"), cumMinutes: 19 },
+    { code: "EW9", name: "Aljunied", ...coords("EW9"), cumMinutes: 21 },
+    { code: "EW10", name: "Kallang", ...coords("EW10"), cumMinutes: 24 },
+    { code: "EW11", name: "Lavender", ...coords("EW11"), cumMinutes: 27 },
+    { code: "EW12", name: "Bugis", ...coords("EW12"), cumMinutes: 30 },
+    { code: "EW13", name: "City Hall", ...coords("EW13"), cumMinutes: 34 },
+    { code: "EW14", name: "Raffles Place", ...coords("EW14"), cumMinutes: 38 },
   ],
 };
 

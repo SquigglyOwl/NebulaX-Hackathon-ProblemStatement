@@ -1,5 +1,5 @@
 import { getAdvice } from "./advice";
-import { getAlternateMinutes } from "./alternates";
+import { getAlternateMinutes, getBusHopMinutes } from "./alternates";
 import type { AffectedSegment, TrainServiceAlerts } from "./datamall";
 import { extractDelayMinutes } from "./delayExtractor";
 import type { RachelJourney } from "./rachel";
@@ -28,7 +28,14 @@ export function slackMinutes(journey: RachelJourney): number {
 export interface CommitStation {
   code: string;
   name: string;
+  // Set when the best reroute is to bus to this station (where trains resume)
+  // and rejoin the line, rather than to abandon the MRT for the whole trip.
+  rejoin?: { code: string; name: string };
 }
+
+// Getting back on the train after a bus hop: wait for the next EWL train and
+// walk from the bus stop to the platform. An assumption, not a measurement.
+const REJOIN_BUFFER_MINUTES = 4;
 
 export interface DelayRange {
   low: number;
@@ -75,24 +82,60 @@ function delayRange(minutes: number, source: Decision["delaySource"]): DelayRang
 // Walks Rachel's route in travel order and finds the last station at which
 // switching to an alternate route still beats riding out the delay — i.e.
 // the "commit point": past it, staying on the train is faster than rerouting.
-// Pure arithmetic over the (currently hand-picked) segment/alternate tables —
-// deliberately not a model, see WRITEUP.md.
+// Pure arithmetic over the segment/alternate-route times — deliberately not a
+// model, see WRITEUP.md.
 //
 // Async here (unlike the original Express version) because alternates.ts's
 // cache now lives in the shared store (Redis in production), not a
 // module-level variable — see store.ts.
+//
+// The delay is only still ahead of the rider at stations *before* the end of
+// the disrupted segment: once past it, staying on the train costs just the
+// remaining ride. Without that, real alternate times made a delay between
+// Paya Lebar and Kallang yield "switch by City Hall" — a station beyond the
+// disruption, where there is nothing left to avoid.
+//
+// Two reroutes are weighed at each station before that point: a bus all the
+// way to the destination, and a *bypass* — a bus to the station where trains
+// resume (the last affected one), then the train for the rest. The bypass is
+// usually far better because the line is only broken along one stretch; a
+// whole-trip-by-bus comparison alone made even a 30-minute delay look like
+// "just stay on the train".
+//
+// `affectedStationCodes` omitted means no segment info: the delay applies at
+// every station and only the whole-trip bus is considered (the old behaviour).
 export async function computeCommitPoint(
   journey: RachelJourney,
   predictedDelayMinutes: number,
+  affectedStationCodes?: string[],
 ): Promise<CommitStation | null> {
-  const destCumMinutes = journey.stations[journey.stations.length - 1].cumMinutes;
+  const stations = journey.stations;
+  const destCumMinutes = stations[stations.length - 1].cumMinutes;
+  const affected = new Set(affectedStationCodes);
+  const lastAffectedIdx = affectedStationCodes
+    ? stations.reduce((last, s, i) => (affected.has(s.code) ? i : last), -1)
+    : stations.length; // no info: treat every station as before the disruption
+  const rejoin = lastAffectedIdx >= 0 && lastAffectedIdx < stations.length ? stations[lastAffectedIdx] : null;
+
+  // Reroute options are independent OneMap lookups (cached after the first
+  // disruption), so fetch them in parallel rather than station by station.
+  const reroutes = await Promise.all(
+    stations.map(async (station, i) => {
+      const wholeTripByBus = await getAlternateMinutes(station.code);
+      if (!rejoin || i >= lastAffectedIdx) return { minutes: wholeTripByBus, viaRejoin: false };
+      const hop = await getBusHopMinutes(station.code, rejoin.code);
+      const bypass = hop + REJOIN_BUFFER_MINUTES + (destCumMinutes - rejoin.cumMinutes);
+      return bypass < wholeTripByBus ? { minutes: bypass, viaRejoin: true } : { minutes: wholeTripByBus, viaRejoin: false };
+    }),
+  );
+
   let commit: CommitStation | null = null;
-  for (const station of journey.stations) {
+  for (const [i, station] of stations.entries()) {
     const remaining = destCumMinutes - station.cumMinutes;
-    const stayTime = predictedDelayMinutes + remaining;
-    const rerouteTime = await getAlternateMinutes(station.code);
-    if (rerouteTime < stayTime) {
+    const delayAhead = i < lastAffectedIdx ? predictedDelayMinutes : 0;
+    if (reroutes[i].minutes < delayAhead + remaining) {
       commit = { code: station.code, name: station.name };
+      if (reroutes[i].viaRejoin && rejoin) commit.rejoin = { code: rejoin.code, name: rejoin.name };
     }
   }
   return commit;
@@ -141,7 +184,9 @@ export async function decide(
     seg.Stations.split(",").map((s) => s.trim()),
   );
   const interrupt = predictedDelayMinutes > slack;
-  const commitStation = interrupt ? await computeCommitPoint(journey, predictedDelayMinutes) : null;
+  const commitStation = interrupt
+    ? await computeCommitPoint(journey, predictedDelayMinutes, affectedStationCodes)
+    : null;
 
   const mitigation = relevant.find((s) => s.FreeMRTShuttle || s.FreePublicBus);
   const action = mitigation?.FreeMRTShuttle
@@ -151,7 +196,9 @@ export async function decide(
       : (llmAdvice?.oneLineAction ?? "Consider an alternative route.");
 
   const commitClause = commitStation
-    ? ` Switch by ${commitStation.name} — after that, staying on this train is faster.`
+    ? commitStation.rejoin
+      ? ` Switch by ${commitStation.name}: take a bus to ${commitStation.rejoin.name}, then rejoin the train — after that, staying on this train is faster.`
+      : ` Switch by ${commitStation.name} — after that, staying on this train is faster.`
     : interrupt
       ? " No alternate beats riding this one out — stay on this train."
       : "";

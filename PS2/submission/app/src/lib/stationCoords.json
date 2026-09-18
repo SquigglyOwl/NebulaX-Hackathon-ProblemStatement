@@ -1,0 +1,80 @@
+{
+  "EW2": {
+    "name": "TAMPINES STATION",
+    "lat": 1.35329,
+    "lng": 103.94516,
+    "objectId": 692
+  },
+  "EW3": {
+    "name": "SIMEI STATION",
+    "lat": 1.3432,
+    "lng": 103.95338,
+    "objectId": 693
+  },
+  "EW4": {
+    "name": "TANAH MERAH INTERCHANGE",
+    "lat": 1.32725,
+    "lng": 103.94655,
+    "objectId": 694
+  },
+  "EW5": {
+    "name": "BEDOK",
+    "lat": 1.32401,
+    "lng": 103.93018,
+    "objectId": 757
+  },
+  "EW6": {
+    "name": "KEMBANGAN",
+    "lat": 1.32104,
+    "lng": 103.91295,
+    "objectId": 695
+  },
+  "EW7": {
+    "name": "EUNOS",
+    "lat": 1.31976,
+    "lng": 103.90326,
+    "objectId": 805
+  },
+  "EW8": {
+    "name": "PAYA LEBAR MRT STATION",
+    "lat": 1.31812,
+    "lng": 103.89307,
+    "objectId": 769
+  },
+  "EW9": {
+    "name": "ALJUNIED",
+    "lat": 1.31643,
+    "lng": 103.88291,
+    "objectId": 803
+  },
+  "EW10": {
+    "name": "KALLANG",
+    "lat": 1.3114,
+    "lng": 103.87132,
+    "objectId": 819
+  },
+  "EW11": {
+    "name": "LAVENDER",
+    "lat": 1.30737,
+    "lng": 103.86284,
+    "objectId": 816
+  },
+  "EW12": {
+    "name": "BUGIS MRT STATION",
+    "lat": 1.30047,
+    "lng": 103.8557,
+    "objectId": 650
+  },
+  "EW13": {
+    "name": "CITY HALL MRT STATION",
+    "lat": 1.29294,
+    "lng": 103.85261,
+    "objectId": 649
+  },
+  "EW14": {
+    "name": "RAFFLES PLACE INTERCHANGE",
+    "lat": 1.28407,
+    "lng": 103.85146,
+    "objectId": 797
+  }
+}

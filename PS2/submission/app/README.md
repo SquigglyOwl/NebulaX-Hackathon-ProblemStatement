@@ -105,8 +105,16 @@ each file's comments for what, if anything, changed and why).
 
 - MRT segment geometry is still a straight line between stations (no real
   rail alignment).
-- Alternate-route times (`src/lib/alternates.ts`) are still a hand-picked
-  placeholder table, not real OneMap routing.
+- Alternate-route times (`src/lib/alternates.ts`) use OneMap bus-only routing
+  when `ONEMAP_EMAIL` / `ONEMAP_PASSWORD` are set, and otherwise fall back to
+  a hand-picked placeholder table (`/api/status` reports which via
+  `alternatesFeed.source`). The OneMap client is covered by offline tests
+  (`npm run check:alternates`, stubbed `fetch`) but has **not yet been run
+  against the live API** — update this line once it has.
+- Station coordinates come from the provided MP2014 rail-station GeoJSON
+  (footprint centroids, `npm run build:stations`), not station *exits* —
+  DataMall's `TrainStationExit` layer would be more accurate for door-to-door
+  walking legs. Per-station ride times (`cumMinutes`) are still hand-picked.
 - ~~The fallback severity classifier (for notices with no stated delay
   figure) is still a 2-value heuristic, not an LLM.~~ Implemented
   (`src/lib/advice.ts`, Gemini) and evaluated — see WRITEUP.md "The

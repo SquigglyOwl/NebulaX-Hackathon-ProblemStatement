@@ -6,7 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "eval:advice": "tsx scripts/evalAdvice.ts"
+    "eval:advice": "tsx scripts/evalAdvice.ts",
+    "build:stations": "tsx scripts/buildStationCoords.ts",
+    "check:alternates": "tsx scripts/checkAlternates.ts",
+    "probe:onemap": "tsx scripts/probeOneMap.ts"
   },
   "dependencies": {
     "@upstash/redis": "^1.34.3",
