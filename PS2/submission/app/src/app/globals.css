@@ -202,8 +202,12 @@ body {
   margin-top: 16px;
   border-radius: 16px;
   overflow: hidden;
-  flex: 1;
+  flex: 1 1 auto;
   min-height: 280px;
+  /* A DEFINITE height (min-height alone is not) so the Leaflet container's
+     `height: 100%` resolves — otherwise it collapses to 0 and the map is
+     invisible. flex-grow still lets it expand on taller screens. */
+  height: 45dvh;
 }
 
 .map-wrap .leaflet-container {
