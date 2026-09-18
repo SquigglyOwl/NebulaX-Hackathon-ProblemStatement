@@ -147,6 +147,13 @@ export default function Page() {
       <div className="app-header">
         Commuter Companion for Rachel · Tampines → Raffles Place, EWL
       </div>
+      {/* Always-present live region: announces a disruption to screen-reader
+          users the moment the decision flips, without changing the layout.
+          Stays quiet on normal days (constant text = no re-announcement),
+          which is the whole point of Rachel's persona. */}
+      <p className="sr-only" role="status" aria-live="polite">
+        {decision.interrupt ? decision.message : "Normal service — no action needed."}
+      </p>
       {staleSince && (
         <div className="stale-banner" role="status">
           Signal lost — showing your update from {minutesAgo(staleSince)} min ago
@@ -159,7 +166,7 @@ export default function Page() {
         {decision.interrupt ? (
           <>
             <span className="kicker">This crosses her buffer — here&apos;s what to do</span>
-            <p className="action">{decision.message}</p>
+            <h1 className="action">{decision.message}</h1>
             <p className="meta">
               Leave home {journey.departAt} → desk by {journey.arriveByDeadline} · slack was{" "}
               {decision.slackMinutes} min
@@ -173,7 +180,7 @@ export default function Page() {
         ) : (
           <>
             <span className="kicker">Silent by design — nothing needs her attention</span>
-            <p className="action">Good morning, Rachel</p>
+            <h1 className="action">Good morning, Rachel</h1>
             <p className="meta">{decision.message}</p>
             <p className="meta">
               She has {decision.slackMinutes} min of buffer today — this app only speaks up if a

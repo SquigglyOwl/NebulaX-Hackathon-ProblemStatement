@@ -2,7 +2,7 @@ import type { BaselineLabel, CrowdLevel, Station } from "@/lib/types";
 
 const LEVEL_META: Record<CrowdLevel, { letter: string; color: string; word: string }> = {
   l: { letter: "L", color: "#1a7f37", word: "low" },
-  m: { letter: "M", color: "#b8860e", word: "moderate" },
+  m: { letter: "M", color: "#8a6400", word: "moderate" }, // darkened from #b8860e for WCAG AA (4.5:1) on white text
   h: { letter: "H", color: "#b8460e", word: "high" },
   NA: { letter: "–", color: "#9aa3af", word: "no data" },
 };

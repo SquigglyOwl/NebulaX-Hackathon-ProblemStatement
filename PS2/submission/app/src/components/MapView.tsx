@@ -19,9 +19,24 @@ export default function MapView({ stations, affectedStationCodes, commitStationC
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
     const map = L.map(containerRef.current, { zoomControl: false });
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      maxZoom: 19,
-      attribution: "&copy; OpenStreetMap contributors",
+    // NOT the public OSM tile server (tile.openstreetmap.org) — PS2_README
+    // §2.3 forbids app use of it. Stadia Maps serves an OSM-derived style and
+    // auto-authenticates requests from localhost/127.0.0.1, so `npm run dev`
+    // renders clean tiles with no key committed. For a deployed demo, add the
+    // Vercel domain (free) in the Stadia dashboard — still no key in code — or
+    // set NEXT_PUBLIC_TILE_URL to a keyed provider (e.g. MapTiler). The light
+    // "alidade_smooth" style stays readable in bright sunlight (§3.2.3).
+    // Attribution must always name OpenStreetMap (ODbL); Stadia/OpenMapTiles
+    // are named too while their tiles are in use.
+    const tileUrl =
+      process.env.NEXT_PUBLIC_TILE_URL ||
+      "https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png";
+    const tileAttribution =
+      process.env.NEXT_PUBLIC_TILE_ATTRIBUTION ||
+      '&copy; <a href="https://stadiamaps.com/">Stadia Maps</a> &copy; <a href="https://openmaptiles.org/">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
+    L.tileLayer(tileUrl, {
+      maxZoom: 20,
+      attribution: tileAttribution,
     }).addTo(map);
     mapRef.current = map;
     layerRef.current = L.layerGroup().addTo(map);
