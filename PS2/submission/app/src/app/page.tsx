@@ -140,7 +140,7 @@ export default function Page() {
     );
   }
 
-  const { decision, journey, source, stats, crowding, crowdingBaseline } = status;
+  const { decision, journey, source, stats, crowding, crowdingBaseline, liveFeed } = status;
 
   return (
     <div className={`screen ${decision.interrupt ? "alert" : "calm"}`}>
@@ -157,6 +157,18 @@ export default function Page() {
       {staleSince && (
         <div className="stale-banner" role="status">
           Signal lost — showing your update from {minutesAgo(staleSince)} min ago
+        </div>
+      )}
+      {/* The server itself couldn't reach the real LTA feed on its last poll
+          (e.g. no/invalid DATAMALL_ACCOUNT_KEY) and fell back to an empty
+          "no disruption" feed — that fallback is otherwise indistinguishable
+          from a genuinely calm day. Only meaningful outside a mock demo:
+          state.ts always reports liveFeed.lastPollError as null while a mock
+          disruption is active. */}
+      {liveFeed.lastPollError && (
+        <div className="feed-error-banner" role="status" title={liveFeed.lastPollError}>
+          Can&apos;t reach the live LTA feed — this is not a confirmed &quot;no
+          disruption,&quot; just no data
         </div>
       )}
       <div className={`status-card${decision.interrupt ? "" : " calm-variant"}`}>

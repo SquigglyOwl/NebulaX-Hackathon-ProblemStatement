@@ -90,6 +90,17 @@ body {
   margin: 0;
 }
 
+.feed-error-banner {
+  background: #7a4a00;
+  color: white;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 8px 12px;
+  border-radius: 10px;
+  margin-bottom: 12px;
+  text-align: center;
+}
+
 .stale-banner {
   background: #3a3f4a;
   color: white;
