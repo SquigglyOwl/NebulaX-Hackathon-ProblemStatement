@@ -1,0 +1,257 @@
+:root {
+  color-scheme: light;
+  --bg: #f5f6f8;
+  --bg-calm: #eaf6ee;
+  --bg-alert: #fff4e5;
+  --ink: #14181f;
+  --muted: #5b6472;
+  --accent: #0b5fff;
+  --alert: #b8460e;
+  --line-normal: #9aa3af;
+  --line-affected: #d0301f;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  -webkit-text-size-adjust: 100%;
+}
+
+.screen {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  padding: max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom));
+}
+
+.screen.calm {
+  background: var(--bg-calm);
+}
+
+.status-card.calm-variant {
+  border-left-color: #1a7f37;
+}
+
+.app-header {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--muted);
+  margin-bottom: 10px;
+}
+
+.kicker {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+
+.screen.alert {
+  background: var(--bg-alert);
+}
+
+.headline {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0 0 8px;
+}
+
+.subtext {
+  font-size: 1rem;
+  color: var(--muted);
+  margin: 0;
+}
+
+.stale-banner {
+  background: #3a3f4a;
+  color: white;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 8px 12px;
+  border-radius: 10px;
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.status-card {
+  background: white;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  border-left: 6px solid var(--alert);
+}
+
+.status-card .action {
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1.35;
+  margin: 0 0 8px;
+}
+
+.status-card .meta {
+  color: var(--muted);
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.delay-range {
+  margin-top: 10px;
+}
+
+.delay-range-track {
+  position: relative;
+  height: 10px;
+  background: #e5e7eb;
+  border-radius: 6px;
+  margin-bottom: 4px;
+}
+
+.delay-range-band {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: #f2b705;
+  border-radius: 6px;
+  opacity: 0.6;
+}
+
+.delay-range-point {
+  position: absolute;
+  top: -3px;
+  width: 4px;
+  height: 16px;
+  background: var(--alert);
+  border-radius: 2px;
+  transform: translateX(-2px);
+}
+
+.delay-range-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.7rem;
+  color: var(--muted);
+}
+
+.delay-range-mid {
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.crowding-strip {
+  margin-top: 12px;
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.crowding-chip {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.crowding-code {
+  font-size: 0.65rem;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.crowding-badge {
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  color: white;
+  font-size: 0.8rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.crowding-baseline-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  margin-top: 3px;
+  background: transparent;
+}
+
+.crowding-baseline-dot.unusual {
+  background: var(--alert);
+}
+
+.map-wrap {
+  margin-top: 16px;
+  border-radius: 16px;
+  overflow: hidden;
+  flex: 1;
+  min-height: 280px;
+}
+
+.map-wrap .leaflet-container {
+  height: 100%;
+  width: 100%;
+}
+
+.demo-panel {
+  margin-top: auto;
+  padding-top: 16px;
+}
+
+.demo-panel-label {
+  font-size: 0.7rem;
+  color: var(--muted);
+  margin: 0 0 8px;
+  text-align: center;
+}
+
+.demo-panel-buttons {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.demo-panel button {
+  flex: 1;
+  min-width: 140px;
+  min-height: 48px;
+  border-radius: 10px;
+  border: 1px solid #d5d9df;
+  background: white;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.demo-panel button.primary {
+  background: var(--accent);
+  color: white;
+  border-color: var(--accent);
+}
+
+.demo-tag {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--alert);
+  margin-bottom: 8px;
+  display: block;
+}

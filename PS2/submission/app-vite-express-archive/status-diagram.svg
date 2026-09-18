@@ -1,0 +1,121 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 800" font-family="Segoe UI, Arial, sans-serif">
+  <rect width="1000" height="800" fill="#f7f8fa"/>
+
+  <text x="500" y="42" text-anchor="middle" font-size="22" font-weight="700" fill="#14181f">
+    Commuter Companion (Rachel) — build status
+  </text>
+  <text x="500" y="66" text-anchor="middle" font-size="13" fill="#5b6472">
+    left = working today · right = not built yet
+  </text>
+
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#5b6472"/>
+    </marker>
+  </defs>
+
+  <!-- column headers -->
+  <text x="230" y="98" text-anchor="middle" font-size="13" font-weight="700" fill="#1a7f37">BUILT &amp; WORKING</text>
+  <text x="760" y="98" text-anchor="middle" font-size="13" font-weight="700" fill="#b8460e">NEXT TO DO</text>
+
+  <!-- row template values -->
+  <!-- Row 1 -->
+  <g>
+    <rect x="40" y="110" width="380" height="76" rx="10" fill="#e9f7ef" stroke="#1a7f37" stroke-width="1.5"/>
+    <text x="60" y="136" font-size="14" font-weight="700" fill="#14181f">LTA DataMall — TrainServiceAlerts</text>
+    <text x="60" y="156" font-size="12" fill="#5b6472">Polled every 60s by the Express backend</text>
+    <text x="60" y="173" font-size="12" fill="#5b6472">Works, but falls back to "no disruption" without a key</text>
+
+    <line x1="420" y1="148" x2="555" y2="148" stroke="#5b6472" stroke-width="1.5" stroke-dasharray="4 4" marker-end="url(#arrow)"/>
+
+    <rect x="560" y="110" width="400" height="76" rx="10" fill="#fff4e5" stroke="#b8460e" stroke-width="1.5" stroke-dasharray="5 4"/>
+    <text x="580" y="136" font-size="14" font-weight="700" fill="#14181f">Add your real AccountKey</text>
+    <text x="580" y="156" font-size="12" fill="#5b6472">Paste it into server/.env — everything else already</text>
+    <text x="580" y="173" font-size="12" fill="#5b6472">reads it, nothing else to change</text>
+  </g>
+
+  <!-- Row 2 -->
+  <g>
+    <rect x="40" y="205" width="380" height="76" rx="10" fill="#e9f7ef" stroke="#1a7f37" stroke-width="1.5"/>
+    <text x="60" y="231" font-size="14" font-weight="700" fill="#14181f">Express backend — poller + state</text>
+    <text x="60" y="251" font-size="12" fill="#5b6472">Holds latest feed, logs every decision,</text>
+    <text x="60" y="268" font-size="12" fill="#5b6472">has a "mock disruption" injector for demos</text>
+
+    <line x1="420" y1="243" x2="555" y2="243" stroke="#5b6472" stroke-width="1.5" stroke-dasharray="4 4" marker-end="url(#arrow)"/>
+
+    <rect x="560" y="205" width="400" height="76" rx="10" fill="#fff4e5" stroke="#b8460e" stroke-width="1.5" stroke-dasharray="5 4"/>
+    <text x="580" y="231" font-size="14" font-weight="700" fill="#14181f">Collect labelled disruption examples</text>
+    <text x="580" y="251" font-size="12" fill="#5b6472">Pull ~100-200 real notices from t.me/s/sgmrt,</text>
+    <text x="580" y="268" font-size="12" fill="#5b6472">label severity/duration — training data for next row</text>
+  </g>
+
+  <!-- Row 3 -->
+  <g>
+    <rect x="40" y="300" width="380" height="76" rx="10" fill="#e9f7ef" stroke="#1a7f37" stroke-width="1.5"/>
+    <text x="60" y="326" font-size="14" font-weight="700" fill="#14181f">Interruption Budget Engine</text>
+    <text x="60" y="346" font-size="12" fill="#5b6472">slack vs predicted delay → interrupt or stay silent</text>
+    <text x="60" y="363" font-size="12" fill="#5b6472">delay is a placeholder 2-value guess, not learned yet</text>
+
+    <line x1="420" y1="338" x2="555" y2="338" stroke="#5b6472" stroke-width="1.5" stroke-dasharray="4 4" marker-end="url(#arrow)"/>
+
+    <rect x="560" y="300" width="400" height="76" rx="10" fill="#fff4e5" stroke="#b8460e" stroke-width="1.5" stroke-dasharray="5 4"/>
+    <text x="580" y="326" font-size="14" font-weight="700" fill="#14181f">LLM classifier</text>
+    <text x="580" y="346" font-size="12" fill="#5b6472">Notice text → severity + duration bucket,</text>
+    <text x="580" y="363" font-size="12" fill="#5b6472">replaces the placeholder, reports an accuracy number</text>
+  </g>
+
+  <!-- Row 4 -->
+  <g>
+    <rect x="40" y="395" width="380" height="76" rx="10" fill="#e9f7ef" stroke="#1a7f37" stroke-width="1.5"/>
+    <text x="60" y="421" font-size="14" font-weight="700" fill="#14181f">React UI — calm / alert screens</text>
+    <text x="60" y="441" font-size="12" fill="#5b6472">Silent by default; switches to a one-line</text>
+    <text x="60" y="458" font-size="12" fill="#5b6472">recommendation only when the engine fires</text>
+
+    <line x1="420" y1="433" x2="555" y2="433" stroke="#5b6472" stroke-width="1.5" stroke-dasharray="4 4" marker-end="url(#arrow)"/>
+
+    <rect x="560" y="395" width="400" height="76" rx="10" fill="#fff4e5" stroke="#b8460e" stroke-width="1.5" stroke-dasharray="5 4"/>
+    <text x="580" y="421" font-size="14" font-weight="700" fill="#14181f">Offline / tunnel caching</text>
+    <text x="580" y="441" font-size="12" fill="#5b6472">Precompute "next best action per station" before</text>
+    <text x="580" y="458" font-size="12" fill="#5b6472">she loses signal underground; store client-side</text>
+  </g>
+
+  <!-- Row 5 -->
+  <g>
+    <rect x="40" y="490" width="380" height="76" rx="10" fill="#e9f7ef" stroke="#1a7f37" stroke-width="1.5"/>
+    <text x="60" y="516" font-size="14" font-weight="700" fill="#14181f">Leaflet + OSM map</text>
+    <text x="60" y="536" font-size="12" fill="#5b6472">Route drawn, affected segment highlighted</text>
+    <text x="60" y="553" font-size="12" fill="#5b6472">in red against the grey base line</text>
+
+    <line x1="420" y1="528" x2="555" y2="528" stroke="#5b6472" stroke-width="1.5" stroke-dasharray="4 4" marker-end="url(#arrow)"/>
+
+    <rect x="560" y="490" width="400" height="76" rx="10" fill="#fff4e5" stroke="#b8460e" stroke-width="1.5" stroke-dasharray="5 4"/>
+    <text x="580" y="516" font-size="14" font-weight="700" fill="#14181f">Real station coordinates + confidence-cone ETA</text>
+    <text x="580" y="536" font-size="12" fill="#5b6472">Swap hand-placed coords for the geojson/OneMap;</text>
+    <text x="580" y="553" font-size="12" fill="#5b6472">add the "forecast cone" that narrows near departure</text>
+  </g>
+
+  <!-- Row 6 -->
+  <g>
+    <rect x="40" y="585" width="380" height="76" rx="10" fill="#e9f7ef" stroke="#1a7f37" stroke-width="1.5"/>
+    <text x="60" y="611" font-size="14" font-weight="700" fill="#14181f">Cloudflare Tunnel → tested on iPhone</text>
+    <text x="60" y="631" font-size="12" fill="#5b6472">Confirmed working today over a temporary</text>
+    <text x="60" y="648" font-size="12" fill="#5b6472">trycloudflare.com URL</text>
+
+    <line x1="420" y1="623" x2="555" y2="623" stroke="#5b6472" stroke-width="1.5" stroke-dasharray="4 4" marker-end="url(#arrow)"/>
+
+    <rect x="560" y="585" width="400" height="76" rx="10" fill="#fff4e5" stroke="#b8460e" stroke-width="1.5" stroke-dasharray="5 4"/>
+    <text x="580" y="611" font-size="14" font-weight="700" fill="#14181f">Deploy to a stable hosted URL</text>
+    <text x="580" y="631" font-size="12" fill="#5b6472">Vercel/Netlify + Railway/Render, so the README</text>
+    <text x="580" y="648" font-size="12" fill="#5b6472">link doesn't die when your laptop's tunnel closes</text>
+  </g>
+
+  <!-- legend -->
+  <rect x="40" y="700" width="22" height="16" rx="3" fill="#e9f7ef" stroke="#1a7f37" stroke-width="1.5"/>
+  <text x="70" y="713" font-size="12" fill="#14181f">Implemented and verified running</text>
+  <rect x="330" y="700" width="22" height="16" rx="3" fill="#fff4e5" stroke="#b8460e" stroke-width="1.5" stroke-dasharray="5 4"/>
+  <text x="360" y="713" font-size="12" fill="#14181f">Not built yet</text>
+
+  <text x="500" y="750" text-anchor="middle" font-size="12" fill="#5b6472">
+    Suggested order: real key → LLM classifier (needs Telegram data collected early) → offline caching → visualization polish → deploy
+  </text>
+</svg>
