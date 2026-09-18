@@ -144,10 +144,52 @@ LTA already published." This is the "well-argued decision not to use a
 model" case the brief credits (§3.3.1). An LLM still earns its place for
 notices that *don't* state a number — see "Not yet built" below.
 
-**Not yet built:** a fallback classifier (LLM or a fault-type → historical-
-duration lookup) for notices where `delayExtractor` returns null, evaluated
-against a hand-labelled sample from the SG MRT Telegram archive (t.me/s/sgmrt)
-with an accuracy figure reported here once built.
+**The fallback classifier, for notices with no stated number:** `advice.ts`
+calls Gemini with a JSON schema (`delayMinutes`, `oneLineAction`) when
+`delayExtractor` returns null — e.g. a flat "No train service between X and
+Y" with no duration stated. Only reached on that harder path; `decide()`
+still tries the regex first unconditionally (see above). Falls back to
+`DELAY_MINUTES_BY_STATUS` (the original 2-value heuristic) if there's no
+`GEMINI_API_KEY`, or the call fails for any reason — an LLM outage should
+never take the whole app down.
+
+**Eval — the actual number, not a claimed one:** `scripts/evalAdvice.ts`
+(`npm run eval:advice`) runs `getAdvice()` against
+`adviceEvalDataset.ts`, a 16-example labelled set: 4 real notices pulled
+from `t.me/s/sgmrt` (deduped from ~20 raw reposts across 2 real disruption
+episodes — the channel is quiet most days, exactly as PS2_README §2.4
+warns) plus 12 synthetic examples written in LTA's real phrasing style for
+fault-type diversity the quiet real feed doesn't currently offer, clearly
+disclosed as synthetic in the dataset file itself. Ground truth is a
+*bucket* (minor ≤15 min / major >15 min implied), not an exact minute
+figure — there's no way to know the true added travel time a historical
+notice caused, only the qualitative severity LTA's own text implies.
+Result: **16/16 (100%) overall, 4/4 (100%) on the real-only subset.**
+Read this as "correctly separates minor from major on the notice styles
+we could evaluate," not as a general accuracy claim — 4 real examples
+from 2 episodes is a small, honest sample, not a statistically powerful
+one, and severity classification is an easier task than exact-minutes
+estimation.
+
+**A real mistake worth recording, same discipline as the OSRM and
+PV/Train ones below:** the eval's first run came back 16/16 *failures*
+("no response"), not passes. The obvious suspects — bad prompt, broken
+JSON schema — were wrong. The actual cause, found by calling the API
+directly outside the app and reading the 429 body instead of guessing:
+free-tier `gemini-3.6-flash` (the model in place at the time) is capped
+at **20 requests/day** (`quotaId:
+GenerateRequestsPerDayPerProjectPerModel-FreeTier`), not the 5/minute the
+code had assumed — a handful of calls made during earlier development
+had already exhausted the day's quota before the eval script's own 16
+calls ran, so every one hit 429 uniformly. Confirmed the quota is
+per-model, not per-key (a 429 on one model doesn't block another), by
+calling a second model directly and getting a real response back. Fixed
+by switching `advice.ts`'s default (`GEMINI_MODEL`) to
+`gemini-3.5-flash-lite` — a separate quota bucket — rather than just
+waiting out the daily cap or pacing harder, which wouldn't have helped
+against a per-day (not per-minute) limit. Re-ran clean: 16/16. This is
+also why `.env.example` now says explicitly that a 429 means "try a
+different model," not "the key is dead."
 
 ## The commit-point detector
 
@@ -305,5 +347,9 @@ permits this because the real feed's `AffectedSegments` is empty most days.
 
 ## Known limitations
 
-See README.md "Known gaps in this scaffold" — LLM classifier, real station
-geometry, offline caching, and multi-persona support are not yet implemented.
+See README.md "Known gaps in this scaffold" — real station geometry,
+richer offline caching, and multi-persona support are not yet implemented.
+The LLM fallback classifier (see "The fallback classifier" above) is
+implemented and evaluated (16/16 on the labelled set, 4/4 real-only) —
+its main limitation is the real-notice sample size (4, from 2 episodes),
+not accuracy on what could be measured.

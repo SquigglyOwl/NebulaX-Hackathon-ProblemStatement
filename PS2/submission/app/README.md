@@ -107,8 +107,11 @@ each file's comments for what, if anything, changed and why).
   rail alignment).
 - Alternate-route times (`src/lib/alternates.ts`) are still a hand-picked
   placeholder table, not real OneMap routing.
-- The fallback severity classifier (for notices with no stated delay figure)
-  is still a 2-value heuristic, not an LLM.
+- ~~The fallback severity classifier (for notices with no stated delay
+  figure) is still a 2-value heuristic, not an LLM.~~ Implemented
+  (`src/lib/advice.ts`, Gemini) and evaluated — see WRITEUP.md "The
+  fallback classifier". The 2-value heuristic remains only as the
+  last-resort fallback when no `GEMINI_API_KEY` is set or the call fails.
 - The Redis code path (`store.ts`'s `@upstash/redis` branch) has not been
   tested against a real Upstash database in this session — only the
   in-memory fallback has been verified end-to-end. Test this before trusting

@@ -39,7 +39,7 @@ export interface Decision {
   interrupt: boolean;
   predictedDelayMinutes: number;
   predictedDelayRange: DelayRange | null;
-  delaySource: "message-text" | "status-fallback" | "none";
+  delaySource: "message-text" | "llm-advice" | "status-fallback" | "none";
   slackMinutes: number;
   affectedStationCodes: string[];
   commitStation: CommitStation | null;

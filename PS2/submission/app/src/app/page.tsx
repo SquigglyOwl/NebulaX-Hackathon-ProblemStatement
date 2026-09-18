@@ -174,7 +174,9 @@ export default function Page() {
             <p className="meta">
               {decision.delaySource === "message-text"
                 ? "Delay read from the notice text"
-                : "Notice didn't state a duration — used a fallback estimate"}
+                : decision.delaySource === "llm-advice"
+                  ? "No duration stated — estimated by AI from the notice's context"
+                  : "Notice didn't state a duration — used a fallback estimate"}
             </p>
           </>
         ) : (

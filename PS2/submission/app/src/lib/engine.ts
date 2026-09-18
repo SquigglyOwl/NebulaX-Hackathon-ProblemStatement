@@ -1,12 +1,14 @@
+import { getAdvice } from "./advice";
 import { getAlternateMinutes } from "./alternates";
 import type { AffectedSegment, TrainServiceAlerts } from "./datamall";
 import { extractDelayMinutes } from "./delayExtractor";
 import type { RachelJourney } from "./rachel";
 
-// Fallback only — used when a notice's text doesn't state a delay figure
-// (delayExtractor.ts returns null), e.g. a flat "No train service between X
-// and Y" with no stated duration. When the text does state a number, that's
-// used instead; see decide() below.
+// Last-resort fallback only — used when a notice's text doesn't state a
+// delay figure (delayExtractor.ts returns null) AND the LLM classifier
+// (advice.ts) is unavailable or itself fails (no GEMINI_API_KEY set, quota
+// exceeded, network error). When the text does state a number, that's used
+// instead; see decide() below.
 const DELAY_MINUTES_BY_STATUS: Record<1 | 2, number> = {
   1: 5, // "minor delays" — status 1 but a Message was posted
   2: 30, // "disrupted service / major delays"
@@ -37,7 +39,7 @@ export interface Decision {
   interrupt: boolean;
   predictedDelayMinutes: number;
   predictedDelayRange: DelayRange | null;
-  delaySource: "message-text" | "status-fallback" | "none";
+  delaySource: "message-text" | "llm-advice" | "status-fallback" | "none";
   slackMinutes: number;
   affectedStationCodes: string[];
   commitStation: CommitStation | null;
@@ -58,6 +60,11 @@ export interface Decision {
 function delayRange(minutes: number, source: Decision["delaySource"]): DelayRange | null {
   if (source === "message-text") {
     return { low: Math.max(1, Math.round(minutes * 0.5)), high: Math.round(minutes * 1.3) };
+  }
+  if (source === "llm-advice") {
+    // Between message-text and status-fallback: an informed estimate from
+    // fault-type/context, but not a number LTA actually stated.
+    return { low: Math.max(1, Math.round(minutes * 0.4)), high: Math.round(minutes * 1.6) };
   }
   if (source === "status-fallback") {
     return { low: Math.max(1, Math.round(minutes * 0.3)), high: Math.round(minutes * 2) };
@@ -119,8 +126,16 @@ export async function decide(
   }
 
   const extracted = extractDelayMinutes(messages);
-  const predictedDelayMinutes = extracted?.minutes ?? DELAY_MINUTES_BY_STATUS[status];
-  const delaySource: Decision["delaySource"] = extracted ? "message-text" : "status-fallback";
+  // Regex first (a stated number is ground truth, not a guess). Only when
+  // that fails do we spend an LLM call — e.g. a flat "No train service
+  // between X and Y" with no duration stated. See advice.ts.
+  const llmAdvice = !extracted && messages[0]?.Content ? await getAdvice(messages[0].Content) : null;
+  const predictedDelayMinutes = extracted?.minutes ?? llmAdvice?.delayMinutes ?? DELAY_MINUTES_BY_STATUS[status];
+  const delaySource: Decision["delaySource"] = extracted
+    ? "message-text"
+    : llmAdvice
+      ? "llm-advice"
+      : "status-fallback";
   const predictedDelayRange = delayRange(predictedDelayMinutes, delaySource);
   const affectedStationCodes = relevant.flatMap((seg) =>
     seg.Stations.split(",").map((s) => s.trim()),
@@ -133,7 +148,7 @@ export async function decide(
     ? `Free MRT shuttle available (${mitigation.MRTShuttleDirection}).`
     : mitigation?.FreePublicBus
       ? `Free boarding on public buses at ${mitigation.FreePublicBus}.`
-      : "Consider an alternative route.";
+      : (llmAdvice?.oneLineAction ?? "Consider an alternative route.");
 
   const commitClause = commitStation
     ? ` Switch by ${commitStation.name} — after that, staying on this train is faster.`
