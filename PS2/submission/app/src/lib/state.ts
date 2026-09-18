@@ -1,4 +1,5 @@
 import { getAlternates } from "./alternates";
+import { computeComfortTip } from "./comfort";
 import { getCrowding } from "./crowding";
 import { decide, type Decision } from "./engine";
 import { getActiveMock } from "./mockState";
@@ -7,6 +8,7 @@ import { RACHEL_JOURNEY } from "./rachel";
 import { getRideTimes } from "./rideTimes";
 import { getJSON, incr } from "./store";
 import { getLatestAlerts } from "./trainAlerts";
+import type { CrowdLevel } from "./types";
 import { getWalkRoutes } from "./walkRouting";
 
 export async function currentStatus() {
@@ -66,12 +68,25 @@ export async function currentStatus() {
   const interruptsFired = decision.interrupt ? await incr("stats:interruptsFired") : await peekInterruptsFired();
 
   const sgtHour = (new Date().getUTCHours() + 8) % 24; // PV/Train's TIME_PER_HOUR is SGT
-  const crowdingLevels: Record<string, string> = {};
+  const crowdingLevels: Record<string, CrowdLevel> = {};
   const crowdingBaseline: Record<string, BaselineLabel> = {};
   for (const station of RACHEL_JOURNEY.stations) {
     crowdingLevels[station.code] = crowding.levels[station.code] ?? "NA";
     crowdingBaseline[station.code] = baseline.labelByStationHour[station.code]?.[sgtHour] ?? "unknown";
   }
+
+  // Surfaces a "quieter, longer" suggestion on an ordinary day, not just
+  // when a disruption interrupts — see comfort.ts. Independent of
+  // decision.interrupt: a disruption day can still have this be relevant
+  // (crowding and delays are different problems), so it's not gated behind
+  // "no disruption today".
+  const comfortTip = await computeComfortTip(
+    RACHEL_JOURNEY.stations,
+    journey.normalJourneyMinutes,
+    RACHEL_JOURNEY.stations[0].code,
+    crowdingLevels,
+    crowdingBaseline,
+  );
 
   return {
     checkedAt: new Date().toISOString(),
@@ -80,6 +95,7 @@ export async function currentStatus() {
     decision,
     crowding: crowdingLevels,
     crowdingBaseline,
+    comfortTip,
     liveFeed: { lastPolledAt: live.polledAt, lastPollError: live.error },
     crowdingFeed: { lastPolledAt: crowding.polledAt, lastPollError: crowding.error },
     walkRoutingFeed: { lastWarmedAt: walkRoutes.fetchedAt, lastWarmError: walkRoutes.error },

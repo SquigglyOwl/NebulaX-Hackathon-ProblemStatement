@@ -51,6 +51,12 @@ export interface Decision {
 export type CrowdLevel = "l" | "m" | "h" | "NA";
 export type BaselineLabel = "low" | "typical" | "high" | "unknown";
 
+export interface ComfortTip {
+  stationCode: string;
+  stationName: string;
+  extraMinutes: number;
+}
+
 export interface StatusResponse {
   checkedAt: string;
   source: "live" | "mock";
@@ -58,6 +64,7 @@ export interface StatusResponse {
   decision: Decision;
   crowding: Record<string, CrowdLevel>;
   crowdingBaseline: Record<string, BaselineLabel>;
+  comfortTip: ComfortTip | null;
   liveFeed: { lastPolledAt: string | null; lastPollError: string | null };
   crowdingFeed: { lastPolledAt: string | null; lastPollError: string | null };
   alternatesFeed: { source: "onemap" | "fallback"; lastWarmedAt: string | null; lastWarmError: string | null };

@@ -1,3 +1,4 @@
+import { isUnusualCrowding } from "@/lib/crowdingRules";
 import type { BaselineLabel, CrowdLevel, Station } from "@/lib/types";
 
 const LEVEL_META: Record<CrowdLevel, { letter: string; color: string; word: string }> = {

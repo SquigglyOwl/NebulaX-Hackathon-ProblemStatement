@@ -62,6 +62,38 @@ body {
   font-weight: 600;
   color: var(--muted);
   margin-bottom: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.preference-toggle {
+  display: inline-flex;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--border, #d8dbe0);
+  flex-shrink: 0;
+}
+
+.preference-toggle button {
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 5px 10px;
+  cursor: pointer;
+}
+
+.preference-toggle button.active {
+  background: #0b5fff;
+  color: white;
+}
+
+.comfort-note {
+  color: #1a7f37;
 }
 
 .kicker {

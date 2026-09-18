@@ -1,9 +1,16 @@
 # Commuter Companion — Next.js (PS2, Rachel persona)
 
 Same product as the original Express + Vite prototype, rebuilt as a single
-Next.js app so it deploys to Vercel as one project instead of two separate
-services. See `WRITEUP.md` for the product write-up (persona, mechanics,
-known gaps) — this README is setup/deploy only.
+Next.js app so it deploys as one project instead of two separate services.
+See `WRITEUP.md` for the product write-up (persona, mechanics, known gaps)
+— this README is setup/deploy only.
+
+**Judging requires the GCP deployment, not Vercel.** NebulaX requires
+submissions to run on GCP using the credits provided to participants — see
+`GCP_DEPLOY.md` for the Cloud Run deploy. The Vercel instructions below are
+still useful for a quick local-equivalent preview (e.g. sharing a link with
+a teammate before the GCP one is up), but the Vercel URL itself does not
+count for judging.
 
 ## Prerequisites
 
@@ -25,7 +32,23 @@ app falls back to an in-memory cache, which is correct for a single `next
 dev` process. Open `http://localhost:3000` in a browser to check it works
 before deploying.
 
-## Deploying to Vercel
+## Deploying to Cloud Run (GCP — the judged deployment)
+
+See `GCP_DEPLOY.md` for the full walkthrough (env vars, secrets, region
+choice, the standalone-output Docker build). Short version, from this
+directory:
+
+```bash
+gcloud run deploy ps2-commuter-companion --source . --region asia-southeast1 \
+  --allow-unauthenticated \
+  --set-env-vars="DATAMALL_ACCOUNT_KEY=...,GEMINI_API_KEY=...,UPSTASH_REDIS_REST_URL=...,UPSTASH_REDIS_REST_TOKEN=..."
+```
+
+No local Docker install needed — Cloud Build builds the image remotely
+from the `Dockerfile` in this directory. You do need the `gcloud` CLI,
+authenticated against the GCP project your NebulaX credits are applied to.
+
+## Deploying to Vercel (optional preview only — not judged)
 
 ```bash
 npx vercel
@@ -42,9 +65,12 @@ Redeploy after adding them (`npx vercel --prod`).
 
 ### Why Upstash Redis is required in production, not just recommended
 
-Vercel runs Next.js API routes as **serverless functions** — there is no
-long-running process, and a different invocation can land on a different
-instance with no shared memory. The original Express backend cached
+Both Vercel and Cloud Run can run multiple concurrent instances of this
+app with no shared memory between them — Vercel because Next.js API
+routes run as serverless functions per-invocation, Cloud Run because it
+can scale a service to several container instances under load. Either
+way, there's no single long-running process. The original Express backend
+cached
 everything (disruption feed, crowding, walking routes, the PV/Train
 baseline) in plain module variables refreshed by `setInterval`; neither of
 those works on Vercel. Every caching module here
@@ -54,12 +80,13 @@ REST-based client — works over serverless, unlike a normal persistent-TCP
 Redis client) when configured, and quietly falls back to an in-memory `Map`
 otherwise.
 
-**Without Redis configured on Vercel**, each serverless instance keeps its
-own separate in-memory cache — the app still runs, but different requests
-can see different cached state (e.g. two different visitors briefly seeing
-different disruption data, or the DataMall API getting hit more often than
-the intended 60s/10min rate limits, since each cold instance re-fetches on
-its own first request). It won't crash, but it's not correct. Get a free
+**Without Redis configured**, each instance (serverless invocation on
+Vercel, container instance on Cloud Run) keeps its own separate in-memory
+cache — the app still runs, but different requests can see different
+cached state (e.g. two different visitors briefly seeing different
+disruption data, or the DataMall API getting hit more often than the
+intended 60s/10min rate limits, since each cold instance re-fetches on its
+own first request). It won't crash, but it's not correct. Get a free
 Upstash database (no credit card) before you rely on this for a demo.
 
 ## Testing on an iPhone
@@ -67,8 +94,8 @@ Upstash database (no credit card) before you rely on this for a demo.
 Same idea as before — you need HTTPS for the app to behave correctly
 (service worker, eventually geolocation). Two options:
 
-- **Deployed to Vercel**: you already have a real `https://` URL — just open
-  it.
+- **Deployed to Cloud Run (or Vercel)**: you already have a real `https://`
+  URL — just open it.
 - **Local testing before deploying**: use a tunnel (Cloudflare Tunnel,
   `cloudflared tunnel --url http://localhost:3000`) the same way the
   original prototype did.

@@ -40,6 +40,32 @@ function minutesAgo(iso: string): number {
   return Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 60_000));
 }
 
+// The app's answer to the NebulaX PS2 FAQ's "how would you know what
+// persona type your user is": ask once, act on it — a real preference
+// axis, not a second hardcoded character. "speed" (default) matches
+// Rachel's own stated priority (PS2_README §2.2); "comfort" surfaces the
+// same crowding-avoidance suggestion as the headline instead of a
+// secondary note. Persisted client-side since there's no user account.
+type RoutePreference = "speed" | "comfort";
+const PREFERENCE_KEY = "ps2-route-preference";
+
+function loadPreference(): RoutePreference {
+  try {
+    const raw = localStorage.getItem(PREFERENCE_KEY);
+    return raw === "comfort" ? "comfort" : "speed";
+  } catch {
+    return "speed";
+  }
+}
+
+function savePreference(pref: RoutePreference) {
+  try {
+    localStorage.setItem(PREFERENCE_KEY, pref);
+  } catch {
+    // private browsing / storage disabled — preference just won't persist across visits
+  }
+}
+
 export default function Page() {
   const [status, setStatus] = useState<StatusResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -48,6 +74,11 @@ export default function Page() {
   // phone's network mid-demo. Labelled in the UI just like the mock
   // disruption injectors.
   const [simulateOffline, setSimulateOffline] = useState(false);
+  // Starts at the same default on server and client to avoid a hydration
+  // mismatch — corrected from localStorage in the mount effect below,
+  // same reasoning as why loadFromCache is never used to initialize state
+  // directly.
+  const [routePreference, setRoutePreference] = useState<RoutePreference>("speed");
 
   useEffect(() => {
     if ("serviceWorker" in navigator) {
@@ -55,7 +86,13 @@ export default function Page() {
         console.warn("Service worker registration failed:", err);
       });
     }
+    setRoutePreference(loadPreference());
   }, []);
+
+  const choosePreference = (pref: RoutePreference) => {
+    setRoutePreference(pref);
+    savePreference(pref);
+  };
 
   const fallBackToCache = useCallback((err: unknown) => {
     const cached = loadFromCache();
@@ -119,6 +156,20 @@ export default function Page() {
     refresh();
   };
 
+  const injectComfortTip = async () => {
+    await fetch("/api/mock/crowding", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ stationCode: "EW8", stationName: "Paya Lebar", extraMinutes: 12 }),
+    });
+    refresh();
+  };
+
+  const clearComfortTip = async () => {
+    await fetch("/api/mock/crowding", { method: "DELETE" });
+    refresh();
+  };
+
   if (error && !status) {
     return (
       <div className="screen calm">
@@ -140,12 +191,32 @@ export default function Page() {
     );
   }
 
-  const { decision, journey, source, stats, crowding, crowdingBaseline, liveFeed } = status;
+  const { decision, journey, source, stats, crowding, crowdingBaseline, liveFeed, comfortTip } = status;
 
   return (
     <div className={`screen ${decision.interrupt ? "alert" : "calm"}`}>
       <div className="app-header">
-        Commuter Companion for Rachel · Tampines → Raffles Place, EWL
+        <span>Commuter Companion for Rachel · Tampines → Raffles Place, EWL</span>
+        {/* A real preference, not a demo control — this is the app's answer
+            to "how would you know what persona type your user is": ask
+            once, act on it. Always visible, on both the calm and alert
+            screens. */}
+        <div className="preference-toggle" role="group" aria-label="Route preference">
+          <button
+            className={routePreference === "speed" ? "active" : ""}
+            aria-pressed={routePreference === "speed"}
+            onClick={() => choosePreference("speed")}
+          >
+            Speed
+          </button>
+          <button
+            className={routePreference === "comfort" ? "active" : ""}
+            aria-pressed={routePreference === "comfort"}
+            onClick={() => choosePreference("comfort")}
+          >
+            Comfort
+          </button>
+        </div>
       </div>
       {/* Always-present live region: announces a disruption to screen-reader
           users the moment the decision flips, without changing the layout.
@@ -191,6 +262,25 @@ export default function Page() {
                   : "Notice didn't state a duration — used a fallback estimate"}
             </p>
           </>
+        ) : comfortTip && routePreference === "comfort" ? (
+          <>
+            {/* The "why open this on a normal day" answer from the NebulaX
+                FAQ — a Comfort-preference user's headline isn't "nothing to
+                report," it's a real, actionable suggestion even with zero
+                disruptions. */}
+            <span className="kicker">A quieter option today</span>
+            <h1 className="action">
+              It&apos;s busier than usual at {comfortTip.stationName} right now
+            </h1>
+            <p className="meta">
+              An alternate route from home takes about {comfortTip.extraMinutes} min longer
+              but avoids the crowd.
+            </p>
+            <p className="meta">
+              She has {decision.slackMinutes} min of buffer today — plenty of room for the
+              detour.
+            </p>
+          </>
         ) : (
           <>
             <span className="kicker">Silent by design — nothing needs her attention</span>
@@ -200,6 +290,13 @@ export default function Page() {
               She has {decision.slackMinutes} min of buffer today — this app only speaks up if a
               delay would eat into that.
             </p>
+            {comfortTip && (
+              <p className="meta comfort-note">
+                Comfort tip: {comfortTip.stationName} is busier than usual right now — an
+                alternate route is ~{comfortTip.extraMinutes} min longer if you&apos;d rather
+                avoid it.
+              </p>
+            )}
             <p className="meta">
               Checked {stats.totalChecks}× today · interrupted {stats.interruptsFired}×
             </p>
@@ -228,6 +325,9 @@ export default function Page() {
         source={source}
         simulateOffline={simulateOffline}
         onToggleOffline={() => setSimulateOffline((v) => !v)}
+        onInjectComfortTip={injectComfortTip}
+        onClearComfortTip={clearComfortTip}
+        comfortTipActive={comfortTip !== null}
       />
     </div>
   );
@@ -239,12 +339,18 @@ function DemoPanel({
   source,
   simulateOffline,
   onToggleOffline,
+  onInjectComfortTip,
+  onClearComfortTip,
+  comfortTipActive,
 }: {
   onInject: (severity: 1 | 2) => void;
   onClear: () => void;
   source: "live" | "mock";
   simulateOffline: boolean;
   onToggleOffline: () => void;
+  onInjectComfortTip: () => void;
+  onClearComfortTip: () => void;
+  comfortTipActive: boolean;
 }) {
   return (
     <div className="demo-panel">
@@ -260,6 +366,11 @@ function DemoPanel({
         <button onClick={onToggleOffline}>
           {simulateOffline ? "Restore signal" : "Simulate signal loss"}
         </button>
+        {comfortTipActive ? (
+          <button onClick={onClearComfortTip}>Clear busy-station demo</button>
+        ) : (
+          <button onClick={onInjectComfortTip}>Simulate unusually busy station</button>
+        )}
       </div>
     </div>
   );
