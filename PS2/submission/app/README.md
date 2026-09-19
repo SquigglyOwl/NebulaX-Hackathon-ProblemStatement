@@ -5,12 +5,21 @@ Next.js app so it deploys as one project instead of two separate services.
 See `WRITEUP.md` for the product write-up (persona, mechanics, known gaps)
 — this README is setup/deploy only.
 
-**Judging requires the GCP deployment, not Vercel.** NebulaX requires
-submissions to run on GCP using the credits provided to participants — see
-`GCP_DEPLOY.md` for the Cloud Run deploy. The Vercel instructions below are
-still useful for a quick local-equivalent preview (e.g. sharing a link with
-a teammate before the GCP one is up), but the Vercel URL itself does not
-count for judging.
+**Live demo:** https://app-steel-ten-64.vercel.app
+
+**On GCP hosting:** NebulaX requires submissions to run on GCP using
+participant credits (see `GCP_DEPLOY.md` for the intended Cloud Run deploy
+— the app, `Dockerfile`, and commands are all in place and ready to run).
+This was attempted but not completed before submission: a teammate's GCP
+project denied our account the base `resourcemanager.projects.get`
+permission (no IAM grant ever went through), and a separately-redeemed
+personal project had no working billing account (`gcloud services enable`
+failed with `UREQ_PROJECT_BILLING_NOT_FOUND`, and the Cloud Console's
+"add a card" flow itself refused to complete — consistent with a Google
+Workspace for Education domain restricting billing account creation,
+though this wasn't confirmed with the domain admin). Recording this
+plainly rather than silently shipping only the Vercel link: the submission
+runs and is fully live at the URL above, just not on GCP as required.
 
 ## Prerequisites
 
