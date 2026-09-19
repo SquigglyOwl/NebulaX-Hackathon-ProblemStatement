@@ -223,13 +223,19 @@ hour Rachel would actually be at each station. The destination station has no
 alternate (you're already there), which also fixes a case where a long delay
 could make the destination itself the "commit point".
 
-**What's real vs. placeholder right now:** with `ONEMAP_EMAIL` /
-`ONEMAP_PASSWORD` set, alternate-route minutes are real OneMap routing
-results, cached for a week; without them (or if OneMap errors) they fall back
-to a hand-picked table and `/api/status` says so (`alternatesFeed.source`).
-As of writing, the OneMap client is tested offline against a stubbed API
-(`npm run check:alternates`) and guards against a wrong duration-unit
-assumption, but has not been run against the live service. `rachel.ts`'s
+**What's real vs. placeholder right now:** with `ONEMAP_TOKEN` (or
+`ONEMAP_EMAIL` / `ONEMAP_PASSWORD`) set, alternate-route minutes are real
+OneMap routing results, cached for a week; without them (or if OneMap errors)
+they fall back to a hand-picked table and `/api/status` says so
+(`alternatesFeed.source`). The OneMap client is tested offline against a
+stubbed API (`npm run check:alternates`) and guards against a wrong
+duration-unit assumption, and has now also been verified against the live
+service: `npm run probe:onemap` confirms the response shape (BUS mode
+correctly returns a bus-only itinerary avoiding the EWL; unrestricted
+TRANSIT correctly rides the subway instead), and a direct `getAlternates()`
+run against the real API returned `source: "onemap"` with no error and
+plausible bus-only minutes for all 12 stations (monotonically decreasing
+toward the destination). `rachel.ts`'s
 per-station `cumMinutes` are still hand-picked, not a measured EWL
 timetable; station coordinates are now real (MP2014 rail-station GeoJSON
 centroids), though footprint centroids rather than exits.

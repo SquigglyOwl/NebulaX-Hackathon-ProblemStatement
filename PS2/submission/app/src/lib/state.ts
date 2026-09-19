@@ -79,11 +79,14 @@ export async function currentStatus() {
   // when a disruption interrupts — see comfort.ts. Independent of
   // decision.interrupt: a disruption day can still have this be relevant
   // (crowding and delays are different problems), so it's not gated behind
-  // "no disruption today".
+  // "no disruption today". Uses `stations` (ride-times-corrected, same list
+  // journey.stations is built from), not the static RACHEL_JOURNEY.stations
+  // — comfort.ts only reads .code/.name so this didn't change behaviour,
+  // just kept it consistent with the rest of this function.
   const comfortTip = await computeComfortTip(
-    RACHEL_JOURNEY.stations,
+    stations,
     journey.normalJourneyMinutes,
-    RACHEL_JOURNEY.stations[0].code,
+    stations[0].code,
     crowdingLevels,
     crowdingBaseline,
   );

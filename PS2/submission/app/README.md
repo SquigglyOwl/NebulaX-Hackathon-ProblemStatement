@@ -133,15 +133,26 @@ each file's comments for what, if anything, changed and why).
 - MRT segment geometry is still a straight line between stations (no real
   rail alignment).
 - Alternate-route times (`src/lib/alternates.ts`) use OneMap bus-only routing
-  when `ONEMAP_EMAIL` / `ONEMAP_PASSWORD` are set, and otherwise fall back to
-  a hand-picked placeholder table (`/api/status` reports which via
-  `alternatesFeed.source`). The OneMap client is covered by offline tests
-  (`npm run check:alternates`, stubbed `fetch`) but has **not yet been run
-  against the live API** — update this line once it has.
+  when `ONEMAP_TOKEN` (or `ONEMAP_EMAIL` / `ONEMAP_PASSWORD`) is set, and
+  otherwise fall back to a hand-picked placeholder table (`/api/status`
+  reports which via `alternatesFeed.source`). Covered by offline tests
+  (`npm run check:alternates`, stubbed `fetch`) and **verified against the
+  live API** (`npm run probe:onemap`, plus a direct `getAlternates()` run):
+  `source: "onemap"`, no error, real bus-only minutes for all 12 stations,
+  monotonically decreasing toward the destination (EW2=72min … EW13=18min),
+  destination station correctly `Infinity`.
 - Station coordinates come from the provided MP2014 rail-station GeoJSON
   (footprint centroids, `npm run build:stations`), not station *exits* —
   DataMall's `TrainStationExit` layer would be more accurate for door-to-door
-  walking legs. Per-station ride times (`cumMinutes`) are still hand-picked.
+  walking legs.
+- Per-station ride times (`cumMinutes`, `src/lib/rideTimes.ts`) use real
+  OneMap-measured in-vehicle times when `ONEMAP_TOKEN` (or `ONEMAP_EMAIL` /
+  `ONEMAP_PASSWORD`) is set, falling back to `rachel.ts`'s hand-picked table
+  otherwise (`/api/status` reports which via `rideTimesFeed.source`).
+  **Verified against the live API**: `source: "onemap"`, no error, real
+  in-vehicle times strictly increasing along the line and meaningfully
+  shorter than the old hand-picked estimates (e.g. Tampines → Raffles Place:
+  28 min real vs. 38 min hand-picked).
 - ~~The fallback severity classifier (for notices with no stated delay
   figure) is still a 2-value heuristic, not an LLM.~~ Implemented
   (`src/lib/advice.ts`, Gemini) and evaluated — see WRITEUP.md "The
