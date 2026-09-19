@@ -1,14 +1,27 @@
 :root {
   color-scheme: light;
-  --bg: #f5f6f8;
-  --bg-calm: #eaf6ee;
-  --bg-alert: #fff4e5;
-  --ink: #14181f;
-  --muted: #5b6472;
-  --accent: #0b5fff;
-  --alert: #b8460e;
-  --line-normal: #9aa3af;
-  --line-affected: #d0301f;
+  --bg: #f4f6f9;
+  --bg-calm-1: #edfaf0;
+  --bg-calm-2: #e0f3ea;
+  --bg-alert-1: #fff6ea;
+  --bg-alert-2: #ffe9d3;
+  --ink: #0f172a;
+  --ink-soft: #334155;
+  --muted: #64748b;
+  --card: #ffffff;
+  --accent: #0b63f6;
+  --calm: #059669;
+  --calm-deep: #047857;
+  --alert: #ea580c;
+  --alert-deep: #c2410c;
+  --line-normal: #94a3b8;
+  --line-affected: #dc2626;
+  --hair: rgba(15, 23, 42, 0.06);
+  --shadow: 0 6px 24px rgba(15, 23, 42, 0.08);
+  --shadow-sm: 0 2px 8px rgba(15, 23, 42, 0.06);
+  --r-lg: 22px;
+  --r-md: 14px;
+  --r-pill: 999px;
 }
 
 * {
@@ -38,81 +51,196 @@ body {
 body {
   background: var(--bg);
   color: var(--ink);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   -webkit-text-size-adjust: 100%;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
 .screen {
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
-  padding: max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom));
+  gap: 14px;
+  padding: max(16px, env(safe-area-inset-top)) 16px max(20px, env(safe-area-inset-bottom));
+  transition: background 0.4s ease;
 }
 
 .screen.calm {
-  background: var(--bg-calm);
+  background: linear-gradient(170deg, var(--bg-calm-1) 0%, var(--bg-calm-2) 100%);
+  background-attachment: fixed;
 }
 
-.status-card.calm-variant {
-  border-left-color: #1a7f37;
+.screen.alert {
+  background: linear-gradient(170deg, var(--bg-alert-1) 0%, var(--bg-alert-2) 100%);
+  background-attachment: fixed;
 }
+
+/* ---- Top app bar ---------------------------------------------------- */
 
 .app-header {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--muted);
-  margin-bottom: 10px;
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
-  gap: 8px;
+  gap: 10px;
+  flex-wrap: wrap;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--ink-soft);
+  padding: 2px 2px;
+  letter-spacing: -0.01em;
 }
 
+.app-header::before {
+  content: "";
+  flex: 0 0 auto;
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, var(--accent), #2b8bff);
+  box-shadow: var(--shadow-sm);
+}
+
+.app-header > span {
+  flex: 1 1 160px;
+  min-width: 0;
+}
+
+/* Speed / Comfort preference — a real, persisted user choice (not a demo
+   control). Styled as an iOS-style segmented control that sits at the far
+   right of the app bar and wraps below on very narrow screens. */
 .preference-toggle {
   display: inline-flex;
-  border-radius: 8px;
-  overflow: hidden;
-  border: 1px solid var(--border, #d8dbe0);
+  margin-left: auto;
   flex-shrink: 0;
+  gap: 2px;
+  padding: 3px;
+  border-radius: var(--r-pill);
+  background: rgba(15, 23, 42, 0.06);
 }
 
 .preference-toggle button {
   border: none;
   background: transparent;
   color: var(--muted);
-  font-size: 0.7rem;
+  font-size: 0.72rem;
   font-weight: 700;
-  padding: 5px 10px;
+  padding: 6px 14px;
+  min-height: 32px;
+  border-radius: var(--r-pill);
   cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
 }
 
 .preference-toggle button.active {
-  background: #0b5fff;
-  color: white;
+  background: #fff;
+  color: var(--accent);
+  box-shadow: var(--shadow-sm);
 }
 
-.comfort-note {
-  color: #1a7f37;
+.preference-toggle button:focus-visible {
+  outline: 2px solid rgba(11, 99, 246, 0.5);
+  outline-offset: 1px;
+}
+
+/* ---- Status card ---------------------------------------------------- */
+
+.status-card {
+  background: var(--card);
+  border-radius: var(--r-lg);
+  padding: 22px 20px;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--hair);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Accent rail down the left edge — colour-coded to the state. */
+.status-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 6px;
+  background: linear-gradient(var(--alert), var(--alert-deep));
+}
+
+.status-card.calm-variant::before {
+  background: linear-gradient(var(--calm), var(--calm-deep));
 }
 
 .kicker {
-  display: block;
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.03em;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
-  color: var(--muted);
-  margin-bottom: 6px;
+  color: var(--alert-deep);
+  background: rgba(234, 88, 12, 0.1);
+  padding: 5px 10px;
+  border-radius: var(--r-pill);
+  margin-bottom: 12px;
 }
 
-.screen.alert {
-  background: var(--bg-alert);
+.calm-variant .kicker {
+  color: var(--calm-deep);
+  background: rgba(5, 150, 105, 0.1);
+}
+
+.kicker::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.status-card .action {
+  font-size: 1.5rem;
+  font-weight: 750;
+  line-height: 1.24;
+  letter-spacing: -0.02em;
+  margin: 0 0 10px;
+  color: var(--ink);
+}
+
+.status-card .meta {
+  color: var(--muted);
+  font-size: 0.92rem;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.status-card .meta + .meta {
+  margin-top: 3px;
+}
+
+/* Comfort tip on a calm day — a positive, actionable aside, so tint it to
+   the calm accent rather than leaving it plain grey. */
+.comfort-note {
+  color: var(--calm-deep);
+  font-weight: 600;
+}
+
+.demo-tag {
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--alert-deep);
+  background: rgba(234, 88, 12, 0.1);
+  padding: 4px 9px;
+  border-radius: var(--r-pill);
+  margin-bottom: 10px;
+  display: inline-block;
 }
 
 .headline {
   font-size: 1.5rem;
-  font-weight: 700;
+  font-weight: 750;
+  letter-spacing: -0.02em;
   margin: 0 0 8px;
 }
 
@@ -122,99 +250,94 @@ body {
   margin: 0;
 }
 
+/* ---- Banners -------------------------------------------------------- */
+
+/* Live LTA feed unreachable — a genuine warning (an empty feed could be
+   mistaken for a calm day), so it reads as a warm alert, not a neutral note. */
 .feed-error-banner {
-  background: #7a4a00;
-  color: white;
+  background: linear-gradient(135deg, #b45309, #92400e);
+  color: #fff;
   font-size: 0.8rem;
   font-weight: 600;
-  padding: 8px 12px;
-  border-radius: 10px;
-  margin-bottom: 12px;
+  line-height: 1.4;
+  padding: 10px 14px;
+  border-radius: var(--r-md);
   text-align: center;
+  box-shadow: var(--shadow-sm);
 }
 
 .stale-banner {
-  background: #3a3f4a;
-  color: white;
+  background: #1e293b;
+  color: #fff;
   font-size: 0.8rem;
   font-weight: 600;
-  padding: 8px 12px;
-  border-radius: 10px;
-  margin-bottom: 12px;
+  padding: 10px 14px;
+  border-radius: var(--r-md);
   text-align: center;
+  box-shadow: var(--shadow-sm);
 }
 
-.status-card {
-  background: white;
-  border-radius: 16px;
-  padding: 20px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-  border-left: 6px solid var(--alert);
-}
-
-.status-card .action {
-  font-size: 1.25rem;
-  font-weight: 700;
-  line-height: 1.35;
-  margin: 0 0 8px;
-}
-
-.status-card .meta {
-  color: var(--muted);
-  font-size: 0.9rem;
-  margin: 0;
-}
+/* ---- Delay range bar ------------------------------------------------ */
 
 .delay-range {
-  margin-top: 10px;
+  margin-top: 16px;
 }
 
 .delay-range-track {
   position: relative;
-  height: 10px;
-  background: #e5e7eb;
-  border-radius: 6px;
-  margin-bottom: 4px;
+  height: 12px;
+  background: #eef2f7;
+  border-radius: var(--r-pill);
+  margin-bottom: 6px;
+  overflow: hidden;
 }
 
 .delay-range-band {
   position: absolute;
   top: 0;
   bottom: 0;
-  background: #f2b705;
-  border-radius: 6px;
-  opacity: 0.6;
+  background: linear-gradient(90deg, #fbbf24, #f59e0b);
+  border-radius: var(--r-pill);
 }
 
 .delay-range-point {
   position: absolute;
-  top: -3px;
+  top: -2px;
   width: 4px;
   height: 16px;
-  background: var(--alert);
-  border-radius: 2px;
+  background: var(--alert-deep);
+  border-radius: var(--r-pill);
   transform: translateX(-2px);
+  box-shadow: 0 0 0 2px #fff;
 }
 
 .delay-range-labels {
   display: flex;
   justify-content: space-between;
-  font-size: 0.7rem;
+  font-size: 0.72rem;
   color: var(--muted);
+  font-variant-numeric: tabular-nums;
 }
 
 .delay-range-mid {
-  font-weight: 600;
+  font-weight: 700;
   color: var(--ink);
 }
 
+/* ---- Crowding strip ------------------------------------------------- */
+
 .crowding-strip {
-  margin-top: 12px;
+  margin-top: 18px;
   display: flex;
-  gap: 8px;
+  gap: 10px;
   overflow-x: auto;
-  padding-bottom: 4px;
+  padding-bottom: 6px;
   -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.crowding-strip::-webkit-scrollbar {
+  display: none;
 }
 
 .crowding-chip {
@@ -222,42 +345,46 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
 }
 
 .crowding-code {
-  font-size: 0.65rem;
+  font-size: 0.62rem;
+  font-weight: 600;
   color: var(--muted);
   white-space: nowrap;
+  letter-spacing: 0.01em;
 }
 
 .crowding-badge {
-  width: 26px;
-  height: 26px;
-  border-radius: 8px;
-  color: white;
-  font-size: 0.8rem;
-  font-weight: 700;
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+  color: #fff;
+  font-size: 0.82rem;
+  font-weight: 800;
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: var(--shadow-sm);
 }
 
 .crowding-baseline-dot {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  margin-top: 3px;
   background: transparent;
 }
 
 .crowding-baseline-dot.unusual {
   background: var(--alert);
+  box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.18);
 }
 
+/* ---- Map ------------------------------------------------------------ */
+
 .map-wrap {
-  margin-top: 16px;
-  border-radius: 16px;
+  border-radius: var(--r-lg);
   overflow: hidden;
   flex: 1 1 auto;
   min-height: 280px;
@@ -265,54 +392,68 @@ body {
      `height: 100%` resolves — otherwise it collapses to 0 and the map is
      invisible. flex-grow still lets it expand on taller screens. */
   height: 45dvh;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--hair);
 }
 
 .map-wrap .leaflet-container {
   height: 100%;
   width: 100%;
+  background: #eef2f7;
 }
 
+.leaflet-control-attribution {
+  font-size: 0.62rem !important;
+  background: rgba(255, 255, 255, 0.82) !important;
+}
+
+/* ---- Demo / testing panel ------------------------------------------ */
+
 .demo-panel {
-  margin-top: auto;
-  padding-top: 16px;
+  margin-top: 4px;
+  padding-top: 14px;
+  border-top: 1px dashed rgba(15, 23, 42, 0.14);
 }
 
 .demo-panel-label {
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   color: var(--muted);
-  margin: 0 0 8px;
+  margin: 0 0 10px;
   text-align: center;
+  letter-spacing: 0.01em;
 }
 
 .demo-panel-buttons {
   display: flex;
-  gap: 8px;
+  gap: 10px;
   flex-wrap: wrap;
 }
 
 .demo-panel button {
-  flex: 1;
-  min-width: 140px;
-  min-height: 48px;
-  border-radius: 10px;
-  border: 1px solid #d5d9df;
-  background: white;
+  flex: 1 1 140px;
+  min-height: 50px;
+  border-radius: var(--r-md);
+  border: 1px solid #d7dee7;
+  background: #fff;
+  color: var(--ink);
   font-size: 0.95rem;
-  font-weight: 600;
+  font-weight: 650;
+  cursor: pointer;
+  transition: transform 0.08s ease, box-shadow 0.15s ease, background 0.15s ease;
+  box-shadow: var(--shadow-sm);
+}
+
+.demo-panel button:active {
+  transform: translateY(1px) scale(0.99);
 }
 
 .demo-panel button.primary {
-  background: var(--accent);
-  color: white;
-  border-color: var(--accent);
+  background: linear-gradient(135deg, var(--accent), #2b8bff);
+  color: #fff;
+  border-color: transparent;
 }
 
-.demo-tag {
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--alert);
-  margin-bottom: 8px;
-  display: block;
+.demo-panel button:focus-visible {
+  outline: 3px solid rgba(11, 99, 246, 0.5);
+  outline-offset: 2px;
 }
